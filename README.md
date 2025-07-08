@@ -23,10 +23,37 @@ The Quiz Application is designed to provide an interactive learning experience t
 ### Installation Instructions  
 GitHub Repo: [https://github.com/Naoyuki-Christopher-H/quiz-application-website.git](https://github.com/Naoyuki-Christopher-H/quiz-application-website.git)
 
-1. **Clone** the repository using `git clone https://github.com/Naoyuki-Christopher-H/quiz-application-website.git`.  
-2. **Open** the project in VS Code or any modern IDE.  
-3. **Run** `npm install` to install dependencies.  
-4. **Launch** the application with `npm start`.  
+#### Prerequisites:
+- Node.js (v16 or higher)
+- npm (v8 or higher)
+- Git
+
+#### Setup:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Naoyuki-Christopher-H/quiz-application-website.git
+   cd quiz-application-website
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm start
+   ```
+
+4. Access the application at:
+   ```
+   http://localhost:3000
+   ```
+
+#### Production Build (Optional):
+```bash
+npm run build
+```
 
 ### Key Features  
 - Theme-based question sets  
