@@ -16,7 +16,7 @@ A complete quiz application with theme-based questions, multiple categories, and
 The Quiz Application is designed to provide an interactive learning experience through customizable quizzes. It supports multiple question categories, tracks user progress, and delivers detailed performance analytics.
 
 - Date of creation: 2025-07  
-- Badges: ![GitHub license](https://img.shields.io/github/license/yourusername/quiz-app)  
+- Badges: ![GitHub license](https://img.shields.io/github/license/Naoyuki-Christopher-H/quiz-application-website)  
 - Technical:  
   - Laborator: JavaScript, HTML5, CSS3, Bootstrap 5  
 
