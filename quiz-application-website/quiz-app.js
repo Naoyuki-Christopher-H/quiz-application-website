@@ -1,426 +1,375 @@
-// Sample question data (replace with your actual questions)
-const themesDB = [
-    // Theme 1
-    [
-        [5, "M", 1, [1, 0, 1], ["image1.jpg"],
-            "Question text BG", [[1, "Correct BG"], [0, "Wrong BG"]],
-            "Question text EN", [[1, "Correct EN"], [0, "Wrong EN"]]
-        ],
-        // Add more questions...
-    ];
-
-$(document).ready(function () {
-    // Constants for question array indices
-    const QuestionIndices =
-    {
-        POINTS: 0,
-        CATEGORY: 1,
-        ID: 2,
-        ANSWERS: 3,
-        IMAGES: 4,
-        BG: 5,
-        BG_ANSWERS: 6,
-        EN: 7,
-        EN_ANSWERS: 8
-    };
-
-    // Quiz configuration
-    const Config =
-    {
-        language: "english",
-        category: "main",
-        themeId: null,
-        currentTheme: null
-    };
-
-    // Quiz state
-    const State =
-    {
-        currentQuestionIndex: 0,
-        isAnswerMode: true,
-        correctAnswers: 0,
-        userAnswers: [],
-        startTime: null
-    };
-
-    // DOM elements
-    const Elements =
-    {
-        languageGroup: $("#languageGroup"),
-        categoryGroup: $("#categoryGroup"),
-        themeDropdown: $("#themeDropdown"),
-        themeMenu: $("#themeMenu"),
-        quizButton: $("#quizButton"),
-        quizContainer: $("#quizContainer"),
-        questionProgress: $("#questionProgress"),
-        questionPoints: $("#questionPoints"),
-        questionContent: $("#questionContent"),
-        submitButton: $("#submitButton"),
-        resultsContainer: $("#resultsContainer"),
-        scoreText: $("#scoreText"),
-        scoreProgress: $("#scoreProgress"),
-        resultsList: $("#resultsList")
-    };
-
-    // Initialize the application
-    function initialize() {
-        setupEventListeners();
-        populateThemeMenu();
+class QuizQuestion {
+    constructor(id, category, questionText, options, correctAnswers, points, images = []) {
+        this.id = id;
+        this.category = category;
+        this.questionText = questionText;
+        this.options = options;
+        this.correctAnswers = correctAnswers;
+        this.points = points;
+        this.images = images;
     }
 
-    // Set up event listeners
-    function setupEventListeners() {
-        Elements.languageGroup.on("change", "input", function () {
-            Config.language = this.id;
-            updateThemeMenu();
-        });
+    checkAnswer(selectedIndices) {
+        const sortedSelected = [...selectedIndices].sort();
+        const sortedCorrect = [...this.correctAnswers].sort();
+        return JSON.stringify(sortedSelected) === JSON.stringify(sortedCorrect);
+    }
+}
 
-        Elements.categoryGroup.on("change", "input", function () {
-            Config.category = this.id;
-            updateThemeMenu();
-        });
-
-        Elements.quizButton.on("click", startQuiz);
-        Elements.submitButton.on("click", handleAnswerSubmission);
+class QuizTheme {
+    constructor(id, name, questions) {
+        this.id = id;
+        this.name = name;
+        this.questions = questions;
     }
 
-    // Populate theme menu
-    function populateThemeMenu() {
-        themesDB.forEach((theme, index) => {
-            const themeNumber = index + 1;
-            const item = $(`
-                <li>
-                    <a class="dropdown-item" href="#" data-theme-id="${index}">
-                        Theme ${themeNumber.toString().padStart(2, "0")} (${theme.length} questions)
-                    </a>
-                </li>
-            `);
+    getQuestionsByCategory(category) {
+        return this.questions.filter(q => q.category === category || q.category === " ");
+    }
+}
 
-            Elements.themeMenu.append(item);
-        });
-
-        Elements.themeMenu.on("click", "a", function (e) {
-            e.preventDefault();
-            Config.themeId = $(this).data("theme-id");
-            Elements.themeDropdown.text($(this).text());
-
-            if (Config.language && Config.category) {
-                Elements.quizButton.prop("disabled", false);
-            }
-        });
+class QuizManager {
+    constructor() {
+        this.themes = [];
+        this.currentTheme = null;
+        this.currentQuestions = [];
+        this.currentQuestionIndex = 0;
+        this.score = 0;
+        this.userAnswers = [];
+        this.config =
+        {
+            category: "main"
+        };
     }
 
-    // Update theme menu based on selections
-    function updateThemeMenu() {
-        if (Config.language && Config.category) {
-            Elements.themeDropdown.prop("disabled", false);
+    initializeSampleData() {
+        const theme1Questions = [
+            new QuizQuestion(
+                1,
+                "M",
+                "What is the capital of France?",
+                ["London", "Paris", "Berlin", "Madrid"],
+                [1],
+                5
+            ),
+            new QuizQuestion(
+                2,
+                "A",
+                "Which of these are JavaScript frameworks?",
+                ["React", "Angular", "Django", "Vue"],
+                [0, 1, 3],
+                10
+            )
+        ];
 
-            if (Config.themeId !== null) {
-                Elements.quizButton.prop("disabled", false);
-            }
+        const theme2Questions = [
+            new QuizQuestion(
+                1,
+                "B",
+                "What does HTML stand for?",
+                [
+                    "Hyper Text Markup Language",
+                    "Home Tool Markup Language",
+                    "Hyperlinks and Text Markup Language"
+                ],
+                [0],
+                5
+            )
+        ];
+
+        this.themes = [
+            new QuizTheme(1, "General Knowledge", theme1Questions),
+            new QuizTheme(2, "Web Development", theme2Questions)
+        ];
+    }
+
+    setTheme(themeId) {
+        this.currentTheme = this.themes.find(t => t.id === themeId);
+        this.currentQuestions = this.currentTheme.getQuestionsByCategory(this.config.category);
+        this.currentQuestionIndex = 0;
+        this.score = 0;
+        this.userAnswers = [];
+    }
+
+    setCategory(category) {
+        this.config.category = category;
+        if (this.currentTheme) {
+            this.currentQuestions = this.currentTheme.getQuestionsByCategory(category);
         }
     }
 
-    // Start the quiz
-    function startQuiz() {
-        // Reset state
-        State.currentQuestionIndex = 0;
-        State.correctAnswers = 0;
-        State.userAnswers = [];
-        State.isAnswerMode = true;
-        State.startTime = new Date();
-
-        // Prepare questions
-        prepareQuestions();
-
-        // Show quiz container
-        Elements.quizContainer.removeClass("d-none");
-        Elements.resultsContainer.addClass("d-none");
-
-        // Render first question
-        renderQuestion();
+    getCurrentQuestion() {
+        return this.currentQuestions[this.currentQuestionIndex];
     }
 
-    // Prepare questions based on configuration
-    function prepareQuestions() {
-        Config.currentTheme = themesDB[Config.themeId];
+    submitAnswer(selectedIndices) {
+        const currentQuestion = this.getCurrentQuestion();
+        const isCorrect = currentQuestion.checkAnswer(selectedIndices);
 
-        // Filter by category if needed
-        if ([0, 5, 8, 10, 15, 18].includes(Config.themeId) && Config.category !== "categoryB") {
-            const categoryLetter = Config.category.replace("category", "").toUpperCase();
-            Config.currentTheme = Config.currentTheme.filter(question =>
-                question[QuestionIndices.CATEGORY] === categoryLetter ||
-                question[QuestionIndices.CATEGORY] === " ");
-        }
-    }
-
-    // Render current question
-    function renderQuestion() {
-        const question = Config.currentTheme[State.currentQuestionIndex];
-        const isEnglish = Config.language === "english";
-
-        // Update progress display
-        Elements.questionProgress.text(
-            `Question ${State.currentQuestionIndex + 1} of ${Config.currentTheme.length}`);
-
-        Elements.questionPoints.text(`${question[QuestionIndices.POINTS]} pts`);
-
-        // Get question text
-        const questionText = isEnglish ?
-            question[QuestionIndices.EN] :
-            question[QuestionIndices.BG];
-
-        // Get answers
-        const answers = isEnglish ?
-            question[QuestionIndices.EN_ANSWERS] :
-            question[QuestionIndices.BG_ANSWERS];
-
-        // Get images
-        const images = question[QuestionIndices.IMAGES];
-
-        // Build question HTML
-        let questionHtml = `<h4 class="mb-4">${questionText}</h4>`;
-
-        if (images.length < 3) {
-            // Text answers
-            questionHtml += `<div class="answer-options">`;
-
-            answers.forEach((answer, index) => {
-                questionHtml += `
-                    <button type="button" class="answer-option" data-answer-index="${index}">
-                        ${answer[1]}
-                    </button>
-                `;
+        this.userAnswers.push(
+            {
+                question: currentQuestion,
+                selectedIndices: selectedIndices,
+                isCorrect: isCorrect,
+                timestamp: new Date()
             });
 
-            questionHtml += `</div>`;
-
-            // Add image if exists
-            if (images.length > 0) {
-                questionHtml += `<div class="mt-4 text-center">`;
-                images.forEach(image => {
-                    const themeFolder = `img/${String(Config.themeId + 1).padStart(2, "0")}/`;
-                    questionHtml += `<img src="${themeFolder}${image}" class="question-image img-fluid">`;
-                });
-                questionHtml += `</div>`;
-            }
+        if (isCorrect) {
+            this.score += currentQuestion.points;
         }
-        else {
-            // Image answers
-            questionHtml += `<div class="row image-options">`;
 
-            images.forEach((image, index) => {
-                questionHtml += `
-                    <div class="col-md-6 mb-3">
-                        <div class="image-option text-center" data-answer-index="${index}">
-                            <img src="img/png/${image[1]}" class="img-fluid mb-2">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="image-${index}">
-                                <label class="form-check-label" for="image-${index}">
-                                    Select
-                                </label>
+        this.currentQuestionIndex++;
+        return isCorrect;
+    }
+
+    isQuizComplete() {
+        return this.currentQuestionIndex >= this.currentQuestions.length;
+    }
+
+    getFinalScore() {
+        const totalPossible = this.currentQuestions.reduce((sum, q) => sum + q.points, 0);
+        return Math.round((this.score / totalPossible) * 100);
+    }
+}
+
+class QuizUI {
+    constructor(quizManager) {
+        this.quizManager = quizManager;
+        this.uiElements = {};
+    }
+
+    initialize() {
+        this.renderBaseUI();
+        this.cacheElements();
+        this.setupEventListeners();
+        this.quizManager.initializeSampleData();
+        this.renderThemeMenu();
+    }
+
+    renderBaseUI() {
+        document.getElementById("app").innerHTML = `
+            <div class="quiz-container">
+                <div class="quiz-card card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Quiz Configuration</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="mb-3">Category</h5>
+                                <div class="btn-group w-100" role="group" id="categoryGroup">
+                                    <input type="radio" class="btn-check" name="category" id="main" autocomplete="off" checked>
+                                    <label class="btn btn-outline-primary" for="main">Main</label>
+                                    
+                                    <input type="radio" class="btn-check" name="category" id="categoryA" autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="categoryA">A</label>
+                                    
+                                    <input type="radio" class="btn-check" name="category" id="categoryB" autocomplete="off">
+                                    <label class="btn btn-outline-primary" for="categoryB">B</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="mb-3">Select Theme</h5>
+                                <div class="dropdown w-100">
+                                    <button class="btn btn-light border dropdown-toggle w-100 text-start" 
+                                            type="button" id="themeDropdown" data-bs-toggle="dropdown" 
+                                            aria-expanded="false" disabled>
+                                        Select a theme
+                                    </button>
+                                    <ul class="dropdown-menu w-100" aria-labelledby="themeDropdown" id="themeMenu"></ul>
+                                </div>
                             </div>
                         </div>
                     </div>
-                `;
-            });
+                </div>
+                
+                <div class="text-center mb-4">
+                    <button type="button" class="btn btn-primary btn-lg px-5" id="quizButton" disabled>
+                        Start Quiz
+                    </button>
+                </div>
+                
+                <div id="quizDisplay">
+                    <div class="quiz-card card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0" id="questionProgress">Question 1 of 10</h5>
+                            <div class="badge bg-primary rounded-pill" id="questionPoints">5 pts</div>
+                        </div>
+                        <div class="card-body" id="questionContent"></div>
+                        <div class="card-footer bg-white">
+                            <button type="button" class="btn btn-primary w-100" id="submitButton">
+                                Submit Answer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="resultsDisplay">
+                    <div class="quiz-card card mb-4">
+                        <div class="card-header">
+                            <h4 class="mb-0">Quiz Results</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-4">
+                                <h2 id="scoreText">Your Score: 80%</h2>
+                                <div class="progress mt-3" style="height: 20px;">
+                                    <div class="progress-bar bg-success" id="scoreProgress" style="width: 80%"></div>
+                                </div>
+                            </div>
+                            <div id="resultsList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
-            questionHtml += `</div>`;
-        }
+    cacheElements() {
+        this.uiElements =
+        {
+            categoryGroup: document.getElementById("categoryGroup"),
+            themeDropdown: document.getElementById("themeDropdown"),
+            themeMenu: document.getElementById("themeMenu"),
+            quizButton: document.getElementById("quizButton"),
+            quizDisplay: document.getElementById("quizDisplay"),
+            questionProgress: document.getElementById("questionProgress"),
+            questionPoints: document.getElementById("questionPoints"),
+            questionContent: document.getElementById("questionContent"),
+            submitButton: document.getElementById("submitButton"),
+            resultsDisplay: document.getElementById("resultsDisplay"),
+            scoreText: document.getElementById("scoreText"),
+            scoreProgress: document.getElementById("scoreProgress"),
+            resultsList: document.getElementById("resultsList")
+        };
+    }
 
-        // Update question content
-        Elements.questionContent.html(questionHtml);
-
-        // Set up answer selection
-        $(".answer-option").on("click", function () {
-            $(this).toggleClass("selected");
+    setupEventListeners() {
+        this.uiElements.categoryGroup.addEventListener("change", (e) => {
+            if (e.target.tagName === "INPUT") {
+                this.quizManager.setCategory(e.target.id);
+            }
         });
 
-        $(".image-option").on("click", function () {
-            $(this).toggleClass("selected");
-            $(this).find(".form-check-input").prop("checked",
-                !$(this).find(".form-check-input").prop("checked"));
+        this.uiElements.quizButton.addEventListener("click", () => {
+            this.startQuiz();
+        });
+
+        this.uiElements.submitButton.addEventListener("click", () => {
+            this.handleAnswerSubmission();
         });
     }
 
-    // Handle answer submission
-    function handleAnswerSubmission() {
-        const question = Config.currentTheme[State.currentQuestionIndex];
-        const isEnglish = Config.language === "english";
-        const answers = isEnglish ?
-            question[QuestionIndices.EN_ANSWERS] :
-            question[QuestionIndices.BG_ANSWERS];
+    renderThemeMenu() {
+        this.uiElements.themeMenu.innerHTML = "";
 
-        const images = question[QuestionIndices.IMAGES];
+        this.quizManager.themes.forEach(theme => {
+            const item = document.createElement("li");
+            item.innerHTML = `
+                <a class="dropdown-item" href="#" data-theme-id="${theme.id}">
+                    ${theme.name} (${theme.questions.length} questions)
+                </a>
+            `;
 
-        if (State.isAnswerMode) {
-            // Check answers
-            const userSelected = [];
+            item.querySelector("a").addEventListener("click", (e) => {
+                e.preventDefault();
+                const themeId = parseInt(e.target.dataset.themeId);
+                this.quizManager.setTheme(themeId);
+                this.uiElements.themeDropdown.textContent = e.target.textContent;
+                this.uiElements.quizButton.disabled = false;
+            });
 
-            if (images.length < 3) {
-                $(".answer-option").each(function (index) {
-                    if ($(this).hasClass("selected")) {
-                        userSelected.push(index);
-                    }
-                });
-            }
-            else {
-                $(".image-option").each(function (index) {
-                    if ($(this).find(".form-check-input").prop("checked")) {
-                        userSelected.push(index);
-                    }
-                });
-            }
+            this.uiElements.themeMenu.appendChild(item);
+        });
 
-            // Get correct answers
-            const correctAnswers = [];
-
-            if (images.length < 3) {
-                answers.forEach((answer, index) => {
-                    if (answer[0] === 1) {
-                        correctAnswers.push(index);
-                    }
-                });
-            }
-            else {
-                images.forEach((image, index) => {
-                    if (image[0] === 1) {
-                        correctAnswers.push(index);
-                    }
-                });
-            }
-
-            // Check if correct
-            const isCorrect = JSON.stringify(userSelected.sort()) === JSON.stringify(correctAnswers.sort());
-
-            if (isCorrect) {
-                State.correctAnswers++;
-            }
-
-            // Store result
-            State.userAnswers.push(
-                {
-                    question: question,
-                    userSelected: userSelected,
-                    correctAnswers: correctAnswers,
-                    isCorrect: isCorrect
-                });
-
-            // Show correct answers
-            showAnswerFeedback(correctAnswers);
-
-            // Update button text
-            Elements.submitButton.text("Next Question");
-            State.isAnswerMode = false;
-        }
-        else {
-            // Move to next question
-            State.currentQuestionIndex++;
-
-            if (State.currentQuestionIndex < Config.currentTheme.length) {
-                // Render next question
-                renderQuestion();
-                Elements.submitButton.text("Submit Answer");
-                State.isAnswerMode = true;
-            }
-            else {
-                // Quiz completed
-                showResults();
-            }
-        }
+        this.uiElements.themeDropdown.disabled = false;
     }
 
-    // Show answer feedback
-    function showAnswerFeedback(correctAnswers) {
-        const question = Config.currentTheme[State.currentQuestionIndex];
-        const images = question[QuestionIndices.IMAGES];
-
-        if (images.length < 3) {
-            // Text answers
-            $(".answer-option").each(function (index) {
-                if (correctAnswers.includes(index)) {
-                    $(this).addClass("correct");
-                }
-                else if ($(this).hasClass("selected")) {
-                    $(this).addClass("incorrect");
-                }
-            });
-        }
-        else {
-            // Image answers
-            $(".image-option").each(function (index) {
-                if (correctAnswers.includes(index)) {
-                    $(this).addClass("correct");
-                }
-                else if ($(this).find(".form-check-input").prop("checked")) {
-                    $(this).addClass("incorrect");
-                }
-            });
-        }
+    startQuiz() {
+        this.uiElements.quizDisplay.style.display = "block";
+        this.uiElements.resultsDisplay.style.display = "none";
+        this.renderQuestion();
     }
 
-    // Show quiz results
-    function showResults() {
-        // Calculate score
-        const score = Math.round((State.correctAnswers / Config.currentTheme.length) * 100);
+    renderQuestion() {
+        const question = this.quizManager.getCurrentQuestion();
 
-        // Update score display
-        Elements.scoreText.text(`Your Score: ${score}%`);
-        Elements.scoreProgress.css("width", `${score}%`);
+        this.uiElements.questionProgress.textContent =
+            `Question ${this.quizManager.currentQuestionIndex + 1} of ${this.quizManager.currentQuestions.length}`;
 
-        // Build results list
-        let resultsHtml = "";
+        this.uiElements.questionPoints.textContent = `${question.points} pts`;
 
-        State.userAnswers.forEach((result, index) => {
-            const isEnglish = Config.language === "english";
-            const questionText = isEnglish ?
-                result.question[QuestionIndices.EN] :
-                result.question[QuestionIndices.BG];
-
-            resultsHtml += `
-                <div class="result-item ${result.isCorrect ? "correct" : "incorrect"}">
-                    <h5>Question ${index + 1}: ${questionText}</h5>
-                    <p class="mb-1">
-                        <strong>Your answer:</strong> 
-                        ${formatAnswer(result.userSelected, result.question, isEnglish)}
-                    </p>
-                    <p class="mb-0">
-                        <strong>Correct answer:</strong> 
-                        ${formatAnswer(result.correctAnswers, result.question, isEnglish)}
-                    </p>
+        let optionsHtml = "";
+        question.options.forEach((option, index) => {
+            optionsHtml += `
+                <div class="option-card" data-option-index="${index}">
+                    ${option}
                 </div>
             `;
         });
 
-        Elements.resultsList.html(resultsHtml);
+        this.uiElements.questionContent.innerHTML = `
+            <h4 class="mb-4">${question.questionText}</h4>
+            <div class="options-container">
+                ${optionsHtml}
+            </div>
+        `;
 
-        // Show results container
-        Elements.quizContainer.addClass("d-none");
-        Elements.resultsContainer.removeClass("d-none");
+        document.querySelectorAll(".option-card").forEach(card => {
+            card.addEventListener("click", () => {
+                card.classList.toggle("selected");
+            });
+        });
     }
 
-    // Format answer for display
-    function formatAnswer(answerIndices, question, isEnglish) {
-        const answers = isEnglish ?
-            question[QuestionIndices.EN_ANSWERS] :
-            question[QuestionIndices.BG_ANSWERS];
+    handleAnswerSubmission() {
+        const selectedIndices = [];
+        document.querySelectorAll(".option-card.selected").forEach(card => {
+            selectedIndices.push(parseInt(card.dataset.optionIndex));
+        });
 
-        const images = question[QuestionIndices.IMAGES];
+        const isCorrect = this.quizManager.submitAnswer(selectedIndices);
 
-        if (answerIndices.length === 0) {
-            return "No answer selected";
-        }
-
-        if (images.length < 3) {
-            // Text answers
-            return answerIndices.map(index => answers[index][1]).join(", ");
+        if (this.quizManager.isQuizComplete()) {
+            this.showResults();
         }
         else {
-            // Image answers
-            return answerIndices.map(index => `Image ${index + 1}`).join(", ");
+            this.renderQuestion();
         }
     }
 
-    // Initialize the application
-    initialize();
+    showResults() {
+        const score = this.quizManager.getFinalScore();
+
+        this.uiElements.scoreText.textContent = `Your Score: ${score}%`;
+        this.uiElements.scoreProgress.style.width = `${score}%`;
+
+        let resultsHtml = "";
+        this.quizManager.userAnswers.forEach((userAnswer, index) => {
+            const question = userAnswer.question;
+            const selectedOptions = userAnswer.selectedIndices.map(i => question.options[i]).join(", ");
+            const correctOptions = question.correctAnswers.map(i => question.options[i]).join(", ");
+
+            resultsHtml += `
+                <div class="result-item ${userAnswer.isCorrect ? "correct" : "incorrect"}">
+                    <h5>Question ${index + 1}: ${question.questionText}</h5>
+                    <p class="mb-1"><strong>Your answer:</strong> ${selectedOptions || "No answer"}</p>
+                    <p class="mb-0"><strong>Correct answer:</strong> ${correctOptions}</p>
+                </div>
+            `;
+        });
+
+        this.uiElements.resultsList.innerHTML = resultsHtml;
+        this.uiElements.quizDisplay.style.display = "none";
+        this.uiElements.resultsDisplay.style.display = "block";
+    }
+}
+
+// Initialize the application when DOM is loaded
+document.addEventListener("DOMContentLoaded", () => {
+    const quizManager = new QuizManager();
+    const quizUI = new QuizUI(quizManager);
+    quizUI.initialize();
 });

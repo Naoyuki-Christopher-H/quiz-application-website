@@ -1,105 +1,76 @@
 body {
     background-color: #f8f9fa;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
 }
 
-.container {
+.quiz-container {
     max-width: 800px;
+    margin: 0 auto;
 }
 
-.card {
-    border: none;
+.quiz-card {
     border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    border: none;
 }
 
 .card-header {
-    padding: 1.25rem 1.5rem;
+    background-color: white;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.25rem 1.5rem;
 }
 
-.btn-check:checked + .btn-outline-primary {
-    background-color: #0d6efd;
-    color: white;
-}
-
-#quizContainer .card-body, #resultsContainer .card-body {
-    min-height: 300px;
-}
-
-.answer-option {
-    display: block;
-    width: 100%;
-    text-align: left;
-    padding: 0.75rem 1.25rem;
-    margin-bottom: 0.5rem;
-    background-color: #f8f9fa;
+.option-card {
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 10px;
     border: 1px solid #dee2e6;
     border-radius: 5px;
-    transition: all 0.2s;
+    padding: 0.75rem 1.25rem;
+    background-color: #f8f9fa;
 }
 
-    .answer-option:hover {
+    .option-card:hover {
         background-color: #e9ecef;
     }
 
-    .answer-option.selected {
+    .option-card.selected {
         background-color: #e7f1ff;
         border-color: #86b7fe;
     }
 
-    .answer-option.correct {
+    .option-card.correct {
         background-color: #d1e7dd;
         border-color: #a3cfbb;
     }
 
-    .answer-option.incorrect {
+    .option-card.incorrect {
         background-color: #f8d7da;
         border-color: #f1aeb5;
     }
-
-.image-option {
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 2px solid transparent;
-    border-radius: 5px;
-    transition: all 0.2s;
-}
-
-    .image-option:hover {
-        border-color: #dee2e6;
-    }
-
-    .image-option.selected {
-        border-color: #86b7fe;
-    }
-
-    .image-option.correct {
-        border-color: #a3cfbb;
-    }
-
-    .image-option.incorrect {
-        border-color: #f1aeb5;
-    }
-
-.question-image {
-    max-width: 100%;
-    height: auto;
-    border-radius: 5px;
-}
 
 .result-item {
     padding: 1rem;
     margin-bottom: 0.5rem;
     border-radius: 5px;
     border-left: 4px solid transparent;
+    background-color: #f8f9fa;
 }
 
     .result-item.correct {
-        background-color: #f8f9fa;
         border-left-color: #198754;
     }
 
     .result-item.incorrect {
-        background-color: #f8f9fa;
         border-left-color: #dc3545;
     }
+
+.progress-bar {
+    transition: width 0.5s ease;
+}
+
+#quizDisplay, #resultsDisplay {
+    display: none;
+}

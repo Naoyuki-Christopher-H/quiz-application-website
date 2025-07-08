@@ -1,7 +1,7 @@
 {
-  "name": "quiz-application",
+  "name": "quiz-app",
   "version": "1.0.0",
-  "description": "A minimal quiz application with class-based architecture",
+  "description": "A complete quiz application",
   "scripts": {
     "start": "live-server --port=3000",
     "test": "echo \"Error: no test specified\" && exit 1"

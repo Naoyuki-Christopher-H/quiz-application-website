@@ -3,112 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimal Quiz App</title>
+    <title>Complete Quiz Application</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-white">
-                        <h4 class="mb-0">Quiz Configuration</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <h5 class="mb-3">Language</h5>
-                                <div class="btn-group w-100" role="group" id="languageGroup">
-                                    <input type="radio" class="btn-check" name="language" id="english" autocomplete="off" checked>
-                                    <label class="btn btn-outline-primary" for="english">English</label>
+    <div class="container mt-5" id="app">
+        <!-- Configuration Panel -->
+        <div class="quiz-card card mb-4">
+            <div class="card-header bg-white">
+                <h4 class="mb-0">Quiz Configuration</h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Category</h5>
+                        <div class="btn-group w-100" role="group" id="categoryGroup">
+                            <input type="radio" class="btn-check" name="category" id="main" autocomplete="off" checked>
+                            <label class="btn btn-outline-primary" for="main">Main</label>
 
-                                    <input type="radio" class="btn-check" name="language" id="bulgarian" autocomplete="off">
-                                    <label class="btn btn-outline-primary" for="bulgarian">Bulgarian</label>
-                                </div>
-                            </div>
+                            <input type="radio" class="btn-check" name="category" id="categoryA" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="categoryA">A</label>
 
-                            <div class="col-md-6">
-                                <h5 class="mb-3">Category</h5>
-                                <div class="btn-group w-100" role="group" id="categoryGroup">
-                                    <input type="radio" class="btn-check" name="category" id="main" autocomplete="off" checked>
-                                    <label class="btn btn-outline-primary" for="main">Main</label>
+                            <input type="radio" class="btn-check" name="category" id="categoryB" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="categoryB">B</label>
 
-                                    <input type="radio" class="btn-check" name="category" id="categoryA" autocomplete="off">
-                                    <label class="btn btn-outline-primary" for="categoryA">A</label>
-
-                                    <input type="radio" class="btn-check" name="category" id="categoryB" autocomplete="off">
-                                    <label class="btn btn-outline-primary" for="categoryB">B</label>
-
-                                    <input type="radio" class="btn-check" name="category" id="categoryT" autocomplete="off">
-                                    <label class="btn btn-outline-primary" for="categoryT">T</label>
-                                </div>
-                            </div>
+                            <input type="radio" class="btn-check" name="category" id="categoryT" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="categoryT">T</label>
                         </div>
+                    </div>
 
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h5 class="mb-3">Select Theme</h5>
-                                <div class="dropdown w-100">
-                                    <button class="btn btn-light border dropdown-toggle w-100 text-start"
-                                            type="button" id="themeDropdown" data-bs-toggle="dropdown"
-                                            aria-expanded="false" disabled>
-                                        Select a theme
-                                    </button>
-                                    <ul class="dropdown-menu w-100" aria-labelledby="themeDropdown" id="themeMenu">
-                                        <!-- Themes will be populated by JavaScript -->
-                                    </ul>
-                                </div>
-                            </div>
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Difficulty</h5>
+                        <div class="btn-group w-100" role="group" id="difficultyGroup">
+                            <input type="radio" class="btn-check" name="difficulty" id="easy" autocomplete="off" checked>
+                            <label class="btn btn-outline-success" for="easy">Easy</label>
+
+                            <input type="radio" class="btn-check" name="difficulty" id="medium" autocomplete="off">
+                            <label class="btn btn-outline-warning" for="medium">Medium</label>
+
+                            <input type="radio" class="btn-check" name="difficulty" id="hard" autocomplete="off">
+                            <label class="btn btn-outline-danger" for="hard">Hard</label>
                         </div>
                     </div>
                 </div>
 
-                <div class="text-center mt-4">
-                    <button type="button" class="btn btn-primary btn-lg px-5" id="quizButton" disabled>
-                        Start Quiz
-                    </button>
-                </div>
-
-                <div id="quizContainer" class="mt-4 d-none">
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0" id="questionProgress">Question 1 of 10</h5>
-                            <div class="badge bg-primary rounded-pill" id="questionPoints">5 pts</div>
-                        </div>
-                        <div class="card-body" id="questionContent">
-                            <!-- Question content will be inserted here -->
-                        </div>
-                        <div class="card-footer bg-white">
-                            <button type="button" class="btn btn-primary w-100" id="submitButton">
-                                Submit Answer
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="mb-3">Select Theme</h5>
+                        <div class="dropdown w-100">
+                            <button class="btn btn-light border dropdown-toggle w-100 text-start"
+                                    type="button" id="themeDropdown" data-bs-toggle="dropdown"
+                                    aria-expanded="false" disabled>
+                                Select a theme
                             </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="resultsContainer" class="mt-4 d-none">
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-white">
-                            <h4 class="mb-0">Quiz Results</h4>
-                        </div>
-                        <div class="card-body">
-                            <div class="text-center mb-4">
-                                <h2 id="scoreText">Your Score: 80%</h2>
-                                <div class="progress mt-3" style="height: 20px;">
-                                    <div class="progress-bar bg-success" id="scoreProgress" style="width: 80%"></div>
-                                </div>
-                            </div>
-                            <div id="resultsList">
-                                <!-- Results will be inserted here -->
-                            </div>
+                            <ul class="dropdown-menu w-100" aria-labelledby="themeDropdown" id="themeMenu">
+                                <!-- Dynamically populated by JavaScript -->
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Start Quiz Button -->
+        <div class="text-center mb-4">
+            <button type="button" class="btn btn-primary btn-lg px-5" id="quizButton" disabled>
+                Start Quiz
+            </button>
+        </div>
+
+        <!-- Quiz Display (hidden initially) -->
+        <div id="quizDisplay" class="d-none">
+            <div class="quiz-card card mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0" id="questionProgress">Question 1 of 10</h5>
+                    <div class="badge bg-primary rounded-pill" id="questionPoints">5 pts</div>
+                </div>
+                <div class="card-body" id="questionContent">
+                    <!-- Question content will be inserted here -->
+                </div>
+                <div class="card-footer bg-white">
+                    <button type="button" class="btn btn-primary w-100" id="submitButton">
+                        Submit Answer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz Navigation -->
+            <div class="d-flex justify-content-between mb-4">
+                <button type="button" class="btn btn-outline-secondary" id="prevButton" disabled>
+                    Previous Question
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="nextButton">
+                    Next Question
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Display (hidden initially) -->
+        <div id="resultsDisplay" class="d-none">
+            <div class="quiz-card card mb-4">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Quiz Results</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h2 id="scoreText">Your Score: 80%</h2>
+                        <div class="progress mt-3" style="height: 20px;">
+                            <div class="progress-bar bg-success" id="scoreProgress" style="width: 80%"></div>
+                        </div>
+                        <p class="mt-2" id="scoreDescription">Good job! You passed the quiz.</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Detailed Results</h5>
+                        <div id="resultsList">
+                            <!-- Results will be inserted here -->
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="button" class="btn btn-primary" id="restartButton">
+                            Restart Quiz
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary ms-2" id="newQuizButton">
+                            Start New Quiz
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timer Display -->
+        <div id="timerContainer" class="text-center mb-3 d-none">
+            <div class="badge bg-info text-dark fs-5" id="quizTimer">00:00</div>
+        </div>
     </div>
 
+    <!-- JavaScript Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="quiz-app.js"></script>
 </body>
