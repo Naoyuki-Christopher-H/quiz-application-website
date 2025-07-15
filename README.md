@@ -82,6 +82,7 @@ quiz-app/
 - LINK: [LICENSE](LICENSE)  
 
 ## REFERENCES  
+
 IF THIS REPOSITORY IS USED, PLEASE USE THIS TEMPLATE AS A REFERENCE:
 
 > Author(s). (Year). *Title of Repository*. Available at: \[URL] (Accessed: \[Date]).
